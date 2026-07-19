@@ -1,0 +1,2 @@
+# Bloquear acceso web directo a los backups
+Require all denied

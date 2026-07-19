@@ -1,0 +1,15 @@
+# ════════════════════════════════════════════════════════════════════════════
+# /uploads/previews/.htaccess
+# Permite acceso público de solo lectura — override del "Deny from all" del padre.
+# Necesario para que el visor de Microsoft Office Online pueda acceder al .docx.
+# ════════════════════════════════════════════════════════════════════════════
+
+# Apache 2.4
+Require all granted
+
+Options -Indexes
+
+# Bloquear ejecución de scripts — solo .docx pueden existir aquí
+<FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|sh|cgi)$">
+  Require all denied
+</FilesMatch>

@@ -1,0 +1,91 @@
+name: Deploy → InfinityFree
+
+# Requiere estos secrets configurados en el repo (Settings → Secrets and variables → Actions):
+#   FTP_HOST, FTP_USERNAME, FTP_PASSWORD  → credenciales FTP de la cuenta InfinityFree
+#   DEMO_DB_NAME, DEMO_DB_USER, DEMO_DB_PASS, DEMO_DB_HOST → credenciales MySQL de InfinityFree
+#     ⚠ DEMO_DB_NAME debe ser el nombre EXACTO que aparece en vPanel → MySQL Databases →
+#       "List of MySQL Databases" (no el placeholder de la tarjeta "Connection Details" de arriba)
+#   DEMO_JWT_SECRET   → cualquier string largo y aleatorio
+#   DEMO_RESET_TOKEN  → cualquier string largo y aleatorio (usado por reset-demo.yml)
+#   DEMO_APP_URL      → ej. https://tu-sitio.infinityfreeapp.com
+#   DEMO_API_URL      → ej. https://tu-sitio.infinityfreeapp.com/api
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci --legacy-peer-deps
+
+      - name: Build React
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.DEMO_API_URL }}
+          VITE_BRAND_NAME: Demo
+
+      - name: Generar config.php
+        env:
+          DEMO_DB_HOST:   ${{ secrets.DEMO_DB_HOST }}
+          DEMO_DB_NAME:   ${{ secrets.DEMO_DB_NAME }}
+          DEMO_DB_USER:   ${{ secrets.DEMO_DB_USER }}
+          DEMO_DB_PASS:   ${{ secrets.DEMO_DB_PASS }}
+          DEMO_JWT_SECRET: ${{ secrets.DEMO_JWT_SECRET }}
+          DEMO_RESET_TOKEN: ${{ secrets.DEMO_RESET_TOKEN }}
+          DEMO_APP_URL:   ${{ secrets.DEMO_APP_URL }}
+        run: |
+          printf '<?php\n' > hosting/api/config.php
+          printf "define('DB_HOST', '%s');\n" "$DEMO_DB_HOST" >> hosting/api/config.php
+          printf "define('DB_NAME', '%s');\n" "$DEMO_DB_NAME" >> hosting/api/config.php
+          printf "define('DB_USER', '%s');\n" "$DEMO_DB_USER" >> hosting/api/config.php
+          printf "define('DB_PASS', '%s');\n" "$DEMO_DB_PASS" >> hosting/api/config.php
+          printf "define('JWT_SECRET', '%s');\n" "$DEMO_JWT_SECRET" >> hosting/api/config.php
+          printf "define('JWT_EXPIRE_SECONDS', 43200);\n" >> hosting/api/config.php
+          printf "define('RESET_TOKEN', '%s');\n" "$DEMO_RESET_TOKEN" >> hosting/api/config.php
+          printf "define('UPLOAD_DIR',  __DIR__ . '/../uploads/');\n" >> hosting/api/config.php
+          printf "define('APP_URL',     '%s');\n" "$DEMO_APP_URL" >> hosting/api/config.php
+
+      - name: Deploy frontend (dist → raíz del sitio)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: ./htdocs/
+          dangerous-clean-slate: false
+
+      - name: Deploy API PHP (hosting/api → /api)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./hosting/api/
+          server-dir: ./htdocs/api/
+          exclude: |
+            **/config.example.php
+
+      - name: Deploy carpeta uploads (solo la primera vez, luego no hace falta)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./hosting/uploads/
+          server-dir: ./htdocs/uploads/

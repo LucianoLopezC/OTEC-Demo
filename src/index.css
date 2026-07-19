@@ -1,0 +1,240 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Brand / Primary — Teal #14b4c9 */
+  --brand-50:  #E8F9FB;
+  --brand-100: #C4EEF4;
+  --brand-200: #8DDDEA;
+  --brand-300: #4DCBDB;
+  --brand-400: #20BCCE;
+  --brand-500: #14b4c9;
+  --brand-600: #0F9DB0;
+  --brand-700: #0A8494;
+  --brand-800: #076878;
+  --brand-900: #044D58;
+  --brand-950: #02333B;
+
+  /* Neutrales */
+  --neutral-0:   #FFFFFF;
+  --neutral-25:  #FBFCFD;
+  --neutral-50:  #F4F8F9;
+  --neutral-100: #EAF2F4;
+  --neutral-200: #D8E8EC;
+  --neutral-300: #B8D0D6;
+  --neutral-400: #89AEBA;
+  --neutral-500: #5E8A98;
+  --neutral-600: #426878;
+  --neutral-700: #2E4F5C;
+  --neutral-800: #1B3340;
+  --neutral-900: #0D1F27;
+
+  /* Semánticos */
+  --info-50: #E8F9FB; --info-400: #20BCCE; --info-500: #14b4c9; --info-600: #0F9DB0;
+  --success-50: #EBF7EE; --success-400: #7FCA90; --success-500: #65bc7b; --success-600: #4CA360;
+  --warning-50: #FFF6E0; --warning-400: #F6B940; --warning-500: #E69C12; --warning-600: #B97A06;
+  --danger-50: #FDECEC; --danger-400: #E55B5B; --danger-500: #D03A3A; --danger-600: #A82626;
+
+  /* Acentos pastel */
+  --accent-purple-50:  #F2EDFC; --accent-purple-100: #e0d4f8; --accent-purple-400: #9B7BE3; --accent-purple-500: #7E58D6;
+  --accent-amber-50:   #FFF6E0; --accent-amber-100:  #fde9a8; --accent-amber-400:  #F6B940; --accent-amber-500:  #E69C12;
+  --accent-mint-50:    #EBF7EE; --accent-mint-100:   #cef0e0; --accent-mint-400:   #7FCA90; --accent-mint-500:   #65bc7b;
+  --accent-sky-50:     #E8F9FB; --accent-sky-100:    #d0e6fd; --accent-sky-400:    #20BCCE; --accent-sky-500:    #14b4c9;
+
+  /* Foreground */
+  --fg-1: #0D1F27;
+  --fg-2: #2E4F5C;
+  --fg-3: #5E8A98;
+  --fg-4: #89AEBA;
+  --fg-inverse: #FFFFFF;
+  --fg-brand: #14b4c9;
+  --fg-sidebar: #D6F0F5;
+  --fg-sidebar-muted: #7BBEC9;
+  --fg-sidebar-header: #4DCBDB;
+  --fg-sidebar-active: #FFFFFF;
+
+  /* Backgrounds */
+  --bg-app: #F4F8F9;
+  --bg-surface: #FFFFFF;
+  --bg-muted: #EAF2F4;
+  --bg-sidebar: #076878;
+  --bg-sidebar-active: rgba(255,255,255,0.12);
+
+  /* Bordes */
+  --border-subtle: #EAF2F4;
+  --border-default: #D8E8EC;
+  --border-strong: #B8D0D6;
+  --border-focus: #14b4c9;
+
+  /* Radios */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  /* Sombras */
+  --shadow-xs: 0 1px 2px rgba(7,104,120,0.05);
+  --shadow-sm: 0 1px 3px rgba(7,104,120,0.07), 0 1px 2px rgba(7,104,120,0.04);
+  --shadow-md: 0 4px 12px -2px rgba(7,104,120,0.10), 0 2px 4px -1px rgba(7,104,120,0.05);
+  --shadow-lg: 0 12px 28px -6px rgba(7,104,120,0.12), 0 4px 8px -2px rgba(7,104,120,0.05);
+  --shadow-focus: 0 0 0 4px rgba(20,180,201,0.22);
+
+  /* Espaciado */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+  --sp-6: 24px; --sp-7: 32px; --sp-8: 40px; --sp-9: 48px; --sp-10: 64px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--fg-2);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button { cursor: pointer; font-family: inherit; border: none; }
+input, select, textarea { font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--neutral-300); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--neutral-400); }
+
+/* ── Responsive variables ───────────────────────────────────────────────── */
+:root {
+  --screen-pad: 28px;
+  --modal-pad:  24px;
+  --card-gap:   20px;
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root { --screen-pad: 20px; --modal-pad: 16px; --card-gap: 16px; }
+}
+@media (max-width: 767px) {
+  :root { --screen-pad: 14px; --modal-pad: 10px; --card-gap: 12px; }
+}
+
+/* ── Responsive grid utilities ─────────────────────────────────────────── */
+.resp-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--card-gap); }
+.resp-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--card-gap); }
+.resp-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--card-gap); }
+@media (max-width: 1023px) {
+  .resp-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .resp-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 767px) {
+  .resp-grid-4, .resp-grid-3, .resp-grid-2 { grid-template-columns: 1fr; }
+}
+
+/* ── Toolbar flex-wrap on mobile ───────────────────────────────────────── */
+.resp-toolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.resp-toolbar-end {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
+}
+
+/* ── Touch targets ─────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  button, [role="button"] { min-height: 36px; }
+}
+
+/* ── Table scroll on mobile ────────────────────────────────────────────── */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ── Dark mode ──────────────────────────────────────────────────────────── */
+html.dark {
+  /* Foreground */
+  --fg-1: #E2EFF2;
+  --fg-2: #A8C4CE;
+  --fg-3: #6E9FAE;
+  --fg-4: #4A7085;
+  --fg-inverse: #0D1F27;
+  --fg-brand: #4DCBDB;
+  --fg-sidebar: #D6F0F5;
+  --fg-sidebar-muted: #7BBEC9;
+  --fg-sidebar-header: #4DCBDB;
+  --fg-sidebar-active: #FFFFFF;
+
+  /* Backgrounds */
+  --bg-app:     #0F1E28;
+  --bg-surface: #162A38;
+  --bg-muted:   #1C3244;
+  --bg-sidebar: #055060;
+  --bg-sidebar-active: rgba(255,255,255,0.10);
+
+  /* Borders */
+  --border-subtle:  #1C3040;
+  --border-default: #243A4C;
+  --border-strong:  #2E4E62;
+  --border-focus:   #14b4c9;
+
+  /* Neutrals */
+  --neutral-0:   #162A38;
+  --neutral-25:  #192E3E;
+  --neutral-50:  #1C3244;
+  --neutral-100: #213A50;
+  --neutral-200: #28455A;
+  --neutral-300: #315668;
+  --neutral-400: #4A7085;
+  --neutral-500: #6E9FAE;
+  --neutral-600: #8BBAC6;
+  --neutral-700: #A8C4CE;
+  --neutral-800: #C8DFE8;
+  --neutral-900: #E2EFF2;
+
+  /* Brand */
+  --brand-50:  #0A1E28;
+  --brand-100: #0D2835;
+  --brand-200: #103545;
+
+  /* Success */
+  --success-50:  #0A2016;
+  --success-200: #103A22;
+  --success-600: #7FCA90;
+
+  /* Warning */
+  --warning-50:  #241800;
+  --warning-200: #3D2C00;
+  --warning-600: #F6B940;
+
+  /* Danger */
+  --danger-50:  #260A0A;
+  --danger-200: #3D1414;
+  --danger-600: #E55B5B;
+
+  /* Info */
+  --info-50:  #0A1E28;
+  --info-200: #103545;
+  --info-600: #4DCBDB;
+
+  /* Acentos pastel (dark) */
+  --accent-sky-50:     #0A1E28; --accent-sky-100:    #0D2835;
+  --accent-mint-50:    #0A2016; --accent-mint-100:   #103A22;
+  --accent-purple-50:  #14102A; --accent-purple-100: #1C1640;
+  --accent-amber-50:   #201500; --accent-amber-100:  #332000;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.45);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.35);
+  --shadow-md: 0 4px 12px -2px rgba(0,0,0,0.55), 0 2px 4px -1px rgba(0,0,0,0.35);
+  --shadow-lg: 0 12px 28px -6px rgba(0,0,0,0.6), 0 4px 8px -2px rgba(0,0,0,0.35);
+}
+
+/* Recharts: remove focus outline on click */
+.recharts-wrapper:focus,
+.recharts-wrapper svg:focus,
+.recharts-wrapper *:focus {
+  outline: none;
+}

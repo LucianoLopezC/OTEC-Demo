@@ -1,0 +1,19 @@
+name: Reset datos de demo
+
+# Llama diariamente al endpoint que restablece empresas, personas, cursos y
+# certificados a los datos de ejemplo originales — así cualquier cambio que
+# haga un visitante de la demo se borra solo cada día.
+# Requiere los secrets DEMO_APP_URL y DEMO_RESET_TOKEN (ver deploy.yml).
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # 08:00 UTC (≈ 05:00 Chile continental sin horario de verano)
+  workflow_dispatch: {}
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar a /api/reset_demo.php
+        run: |
+          curl -fsS "${{ secrets.DEMO_APP_URL }}/api/reset_demo.php?token=${{ secrets.DEMO_RESET_TOKEN }}"

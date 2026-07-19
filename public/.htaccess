@@ -1,0 +1,29 @@
+# ════════════════════════════════════════════════════════════════════════════
+# .htaccess — Raíz del sitio
+# Maneja el enrutamiento de React SPA sin romper la API PHP
+# ════════════════════════════════════════════════════════════════════════════
+
+Options -MultiViews
+
+# ── Security headers ─────────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https:; frame-src https://view.officeapps.live.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self';"
+</IfModule>
+
+RewriteEngine On
+
+# Servir archivos y directorios reales directamente (assets, index.html, etc.)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# No redirigir peticiones a /api/
+RewriteRule ^api/ - [L]
+
+# Todo lo demás → index.html (React SPA)
+RewriteRule ^ index.html [QSA,L]

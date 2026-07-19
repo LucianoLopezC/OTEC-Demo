@@ -1,0 +1,26 @@
+# ════════════════════════════════════════════════════════════════════════════
+# .htaccess — Carpeta /api/
+# Permite que los archivos PHP se ejecuten normalmente
+# ════════════════════════════════════════════════════════════════════════════
+
+Options -Indexes
+AddHandler application/x-httpd-php .php
+
+<FilesMatch "^config.*\.php$">
+    Require all denied
+</FilesMatch>
+
+<Files "*.json">
+    Require all denied
+</Files>
+
+# Pasar el header Authorization a PHP (necesario en Apache compartido)
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+</IfModule>

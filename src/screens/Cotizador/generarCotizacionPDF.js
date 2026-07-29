@@ -248,7 +248,9 @@ export async function generarCotizacionPDF({ empresa, items, numero, fecha, nota
   const A4_W = 210
   const imgH = (canvas.height / canvas.width) * A4_W
   const pdf  = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, A4_W, imgH)
+  // JPEG comprimido en vez de PNG: el documento es fondo blanco sin transparencia,
+  // así que no hay pérdida visual — mismo fix que bajó los certificados de 2MB a 13KB.
+  pdf.addImage(canvas.toDataURL('image/jpeg', 0.85), 'JPEG', 0, 0, A4_W, imgH)
   const nombreEmp = empresa.nombre.replace(/[\\/:*?"<>|]/g, '').trim()
   pdf.save(`COT-N° ${numero.replace('COT-', '')}-${nombreEmp}.pdf`)
 }

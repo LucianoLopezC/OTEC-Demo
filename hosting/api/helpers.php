@@ -135,6 +135,15 @@ function require_permission(PDO $pdo, array $claims, string $permiso): void {
     }
 }
 
+// Si el rol del usuario está limitado a los datos de su propia empresa
+// (permiso verDatosEmpresaPropia), devuelve su empresaId para filtrar
+// las consultas. Si tiene acceso global, devuelve null (sin filtro).
+function claims_empresa_scope(PDO $pdo, array $claims): ?int {
+    $permisos = get_user_permissions($pdo, $claims);
+    if (($permisos['verDatosEmpresaPropia'] ?? false) !== true) return null;
+    return $claims['empresaId'] ? (int)$claims['empresaId'] : 0; // 0 → sin empresa asignada, no ve nada
+}
+
 // ─── Middleware: verificar token ──────────────────────────────────────────────
 function auth_required(): array {
     // Apache a veces mueve el header a REDIRECT_HTTP_AUTHORIZATION

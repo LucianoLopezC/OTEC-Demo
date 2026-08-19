@@ -26,6 +26,7 @@ try {
             json_response(array_map('row_lote', $stmt->fetchAll()));
 
         case 'POST':
+            require_permission($pdo, $user, 'emitirCertificados');
             $stmt = $pdo->prepare('INSERT INTO lotes_certificados (folio,curso_id,plantilla_id,tipo_certificado,cantidad_emitida,participantes_ids,participantes_data,storage_path,emitido_por_id) VALUES (?,?,?,?,?,?,?,?,?)');
             $stmt->execute([
                 $body['folio']            ?? null,
@@ -44,6 +45,7 @@ try {
             json_response(row_lote($row), 201);
 
         case 'PUT':
+            require_permission($pdo, $user, 'emitirCertificados');
             if (!$id) json_error('ID requerido');
             $stmt = $pdo->prepare('UPDATE lotes_certificados SET folio=?,curso_id=?,plantilla_id=?,tipo_certificado=?,cantidad_emitida=?,participantes_ids=?,participantes_data=?,storage_path=?,emitido_por_id=? WHERE id=?');
             $stmt->execute([
@@ -66,6 +68,7 @@ try {
             json_response(row_lote($row));
 
         case 'DELETE':
+            require_permission($pdo, $user, 'emitirCertificados');
             if (!$id) json_error('ID requerido');
             $stFolio = $pdo->prepare('SELECT folio FROM lotes_certificados WHERE id=?');
             $stFolio->execute([$id]);

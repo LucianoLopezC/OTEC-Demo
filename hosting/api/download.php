@@ -25,13 +25,17 @@ $buckets = [
 
 if (!$path || !isset($buckets[$bucket])) json_error('Parámetros inválidos');
 
-// Sanitizar ruta
-$cleanPath = ltrim(str_replace(['../', '..\\', '../'], '', $path), '/\\');
-$fullPath  = UPLOAD_DIR . $buckets[$bucket] . $cleanPath;
+// Sanitizar ruta — comparar contra el realpath del directorio base en vez de
+// filtrar "../" con str_replace (bypasseable con secuencias como "....//")
+$cleanPath = ltrim(str_replace('\\', '/', $path), '/');
+$baseDir   = UPLOAD_DIR . $buckets[$bucket];
+$realBase  = realpath($baseDir);
+$realFile  = realpath($baseDir . $cleanPath);
 
-if (!file_exists($fullPath) || !is_file($fullPath)) {
+if (!$realBase || !$realFile || !str_starts_with($realFile, $realBase . DIRECTORY_SEPARATOR)) {
     json_error('Archivo no encontrado', 404);
 }
+$fullPath = $realFile;
 
 $ext      = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
 $mimeMap  = [

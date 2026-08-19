@@ -17,6 +17,7 @@ try {
 
         // ── Crear ─────────────────────────────────────────────────────────────
         case 'POST':
+            require_permission($pdo, $user, 'crearEmpresa');
             if (empty($body['nombre'])) json_error('El nombre es requerido');
             $stmt = $pdo->prepare('INSERT INTO empresas (nombre,rut,contacto,email,telefono,region,usuarios,cursos,estado) VALUES (?,?,?,?,?,?,?,?,?)');
             $stmt->execute([
@@ -38,6 +39,7 @@ try {
 
         // ── Editar ────────────────────────────────────────────────────────────
         case 'PUT':
+            require_permission($pdo, $user, 'editarEmpresa');
             if (!$id) json_error('ID requerido');
             $stmt = $pdo->prepare('UPDATE empresas SET nombre=?,rut=?,contacto=?,email=?,telefono=?,region=?,usuarios=?,cursos=?,estado=? WHERE id=?');
             $stmt->execute([
@@ -59,6 +61,7 @@ try {
 
         // ── Eliminar ──────────────────────────────────────────────────────────
         case 'DELETE':
+            require_permission($pdo, $user, 'eliminarEmpresa');
             if (!$id) json_error('ID requerido');
             $pdo->prepare('DELETE FROM empresas WHERE id=?')->execute([$id]);
             json_response(['ok' => true]);

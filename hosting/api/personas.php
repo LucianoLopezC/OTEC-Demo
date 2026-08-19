@@ -20,6 +20,10 @@ try {
             // que JSON_OBJECT y GROUP_CONCAT sí están disponibles desde MariaDB 10.2 / MySQL 5.7.
             $pdo->exec('SET SESSION group_concat_max_len = 1000000');
 
+            // Roles con verDatosEmpresaPropia (ej. 'empresa') solo ven personas de su propia empresa
+            $empresaScope = claims_empresa_scope($pdo, $user);
+            $whereSql     = $empresaScope !== null ? ' WHERE p.empresa_id = ?' : '';
+
             $baseSql =
                 'SELECT p.*,
                     CONCAT(\'[\', COALESCE(GROUP_CONCAT(
@@ -37,14 +41,20 @@ try {
                             \'estado\',            c.estado
                         ) END SEPARATOR \',\'), \'\'), \']\') AS certs_json
                 FROM personas p
-                LEFT JOIN certificados c ON c.rut_participante = p.rut
+                LEFT JOIN certificados c ON c.rut_participante = p.rut' . $whereSql . '
                 GROUP BY p.id
                 ORDER BY p.nombre';
 
+            $scopeParams = $empresaScope !== null ? [$empresaScope] : [];
+
             if ($page !== null && $limit !== null) {
-                $total = (int)$pdo->query('SELECT COUNT(*) FROM personas')->fetchColumn();
-                $stmt  = $pdo->prepare($baseSql . ' LIMIT ? OFFSET ?');
-                $stmt->execute([$limit, ($page - 1) * $limit]);
+                $countSql = 'SELECT COUNT(*) FROM personas p' . $whereSql;
+                $stCount  = $pdo->prepare($countSql);
+                $stCount->execute($scopeParams);
+                $total = (int)$stCount->fetchColumn();
+
+                $stmt = $pdo->prepare($baseSql . ' LIMIT ? OFFSET ?');
+                $stmt->execute([...$scopeParams, $limit, ($page - 1) * $limit]);
                 json_response([
                     'data'       => array_map('row_persona', $stmt->fetchAll()),
                     'total'      => $total,
@@ -54,10 +64,12 @@ try {
                 ]);
             }
 
-            $stmt = $pdo->query($baseSql);
+            $stmt = $pdo->prepare($baseSql);
+            $stmt->execute($scopeParams);
             json_response(array_map('row_persona', $stmt->fetchAll()));
 
         case 'POST':
+            require_permission($pdo, $user, 'crearPersona');
             if (empty($body['nombre'])) json_error('El nombre es requerido');
             $stmt = $pdo->prepare('INSERT INTO personas (nombre,rut,email,empresa,empresa_id) VALUES (?,?,?,?,?)');
             $stmt->execute([
@@ -73,6 +85,7 @@ try {
             json_response(row_persona($row), 201);
 
         case 'PUT':
+            require_permission($pdo, $user, 'crearPersona');
             if (!$id) json_error('ID requerido');
             $stmt = $pdo->prepare('UPDATE personas SET nombre=?,rut=?,email=?,empresa=?,empresa_id=? WHERE id=?');
             $stmt->execute([
@@ -89,6 +102,7 @@ try {
             json_response(row_persona($row));
 
         case 'DELETE':
+            require_permission($pdo, $user, 'crearPersona');
             if (!$id) json_error('ID requerido');
             $stRut = $pdo->prepare('SELECT rut FROM personas WHERE id=?');
             $stRut->execute([$id]);

@@ -83,13 +83,19 @@ try {
                 json_response(row_certificado_completo($row));
             }
 
+            // Roles con verDatosEmpresaPropia (ej. 'empresa') solo ven certificados de su propia empresa
+            $empresaScope = claims_empresa_scope($pdo, $user);
+            $whereSql     = $empresaScope !== null ? ' WHERE empresa_id = ?' : '';
+            $scopeParams  = $empresaScope !== null ? [$empresaScope] : [];
+
             // ── Listado por folio (para regenerar ZIP del lote) ──────────────
             $folio = trim($_GET['folio'] ?? '');
             if ($folio) {
+                $folioWhere = $whereSql !== '' ? $whereSql . ' AND folio = ?' : ' WHERE folio = ?';
                 $stmt = $pdo->prepare(
-                    'SELECT * FROM certificados WHERE folio = ? ORDER BY nombre_participante ASC'
+                    'SELECT * FROM certificados' . $folioWhere . ' ORDER BY nombre_participante ASC'
                 );
-                $stmt->execute([$folio]);
+                $stmt->execute([...$scopeParams, $folio]);
                 json_response(array_map('row_certificado', $stmt->fetchAll()));
             }
 
@@ -99,11 +105,12 @@ try {
 
             if ($page > 0 && $limit > 0) {
                 // Paginado: GET certificados.php?page=1&limit=100
-                $offset = ($page - 1) * $limit;
-                $stCount = $pdo->query('SELECT COUNT(*) FROM certificados');
+                $offset  = ($page - 1) * $limit;
+                $stCount = $pdo->prepare('SELECT COUNT(*) FROM certificados' . $whereSql);
+                $stCount->execute($scopeParams);
                 $total   = (int)$stCount->fetchColumn();
-                $stmt = $pdo->prepare('SELECT * FROM certificados ORDER BY fecha_emision DESC LIMIT ? OFFSET ?');
-                $stmt->execute([$limit, $offset]);
+                $stmt = $pdo->prepare('SELECT * FROM certificados' . $whereSql . ' ORDER BY fecha_emision DESC LIMIT ? OFFSET ?');
+                $stmt->execute([...$scopeParams, $limit, $offset]);
                 json_response([
                     'data'       => array_map('row_certificado', $stmt->fetchAll()),
                     'total'      => $total,
@@ -114,10 +121,12 @@ try {
             }
 
             // Sin paginación — devuelve todo (compatibilidad con exportación Sheets)
-            $stmt = $pdo->query('SELECT * FROM certificados ORDER BY fecha_emision DESC');
+            $stmt = $pdo->prepare('SELECT * FROM certificados' . $whereSql . ' ORDER BY fecha_emision DESC');
+            $stmt->execute($scopeParams);
             json_response(array_map('row_certificado', $stmt->fetchAll()));
 
         case 'POST':
+            require_permission($pdo, $user, 'emitirCertificados');
             $action = $_GET['action'] ?? '';
 
             // ── Inserción masiva en una sola transacción ──────────────────────
@@ -251,6 +260,7 @@ try {
             json_response(row_certificado($row), 201);
 
         case 'PUT':
+            require_permission($pdo, $user, 'emitirCertificados');
             if (!$id) json_error('ID requerido');
             $stmt = $pdo->prepare(
                 'UPDATE certificados
@@ -281,6 +291,7 @@ try {
             json_response(row_certificado($row));
 
         case 'DELETE':
+            require_permission($pdo, $user, 'emitirCertificados');
             if (!$id) json_error('ID requerido');
             $pdo->prepare('DELETE FROM certificados WHERE id=?')->execute([$id]);
             json_response(['ok' => true]);

@@ -6,7 +6,13 @@ import { calcularEstado } from './utils'
 // Genera PDFs de certificados. Si hay plantilla HTML (editor WYSIWYG) usa html2canvas
 // para capturar el HTML pixel-perfect. Si no, dibuja el PDF con jsPDF directamente.
 
+function escHtml(str) {
+  return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 // Reemplaza todos los {{CLAVE}} del HTML de la plantilla con los valores del participante.
+// El caller decide qué valores son texto plano (se pasan ya escapados con escHtml)
+// y cuáles son fragmentos HTML intencionales (CONTENIDOS_CURSO, QR_VERIFICACION).
 function reemplazarVariables(html, variables) {
   return Object.entries(variables).reduce(
     (acc, [key, value]) => acc.replaceAll(`{{${key}}}`, value ?? ''),
@@ -314,29 +320,32 @@ async function generarPDFDesdeHtml(participante, datos, codigoCertificado, plant
     ? Math.max(1, Math.round(datos.vigenciaMeses / 12))
     : 0
 
+  // Campos de texto plano → escapados (evita XSS almacenado vía innerHTML con
+  // datos de participante/curso/empresa). CONTENIDOS_CURSO y QR_VERIFICACION
+  // son fragmentos HTML intencionales — se escapan internamente en su propio texto.
   const htmlConDatos = reemplazarVariables(plantillaHtml, {
-    NOMBRE_PARTICIPANTE:   participante.nombre.toUpperCase(),
-    RUT_PARTICIPANTE:      participante.rut,
-    NOMBRE_EMPRESA:        datos.empresaNombre,
-    FECHA_REALIZACION:     fechaLarga,
-    NOMBRE_CURSO:          datos.cursoNombre,
-    HORAS_CURSO:           `${datos.horas} horas`,
-    MODALIDAD_CURSO:       datos.modalidad || 'teórico-práctico',
-    CONDICION_CURSO:       (datos.condicion || '').toLowerCase(),
-    ASISTENCIA:            `${participante.asistencia}%`,
-    EVALUACION:            `${participante.evaluacion}%`,
-    ESTADO_TEXTO:          participante.estado || 'Aprobado',
-    VIGENCIA_AÑOS:         vigenciaAnios > 0
+    NOMBRE_PARTICIPANTE:   escHtml(participante.nombre.toUpperCase()),
+    RUT_PARTICIPANTE:      escHtml(participante.rut),
+    NOMBRE_EMPRESA:        escHtml(datos.empresaNombre),
+    FECHA_REALIZACION:     escHtml(fechaLarga),
+    NOMBRE_CURSO:          escHtml(datos.cursoNombre),
+    HORAS_CURSO:           escHtml(`${datos.horas} horas`),
+    MODALIDAD_CURSO:       escHtml(datos.modalidad || 'teórico-práctico'),
+    CONDICION_CURSO:       escHtml((datos.condicion || '').toLowerCase()),
+    ASISTENCIA:            escHtml(`${participante.asistencia}%`),
+    EVALUACION:            escHtml(`${participante.evaluacion}%`),
+    ESTADO_TEXTO:          escHtml(participante.estado || 'Aprobado'),
+    VIGENCIA_AÑOS:         escHtml(vigenciaAnios > 0
       ? `${vigenciaAnios} ${vigenciaAnios === 1 ? 'año' : 'años'}`
-      : 'Sin vencimiento',
-    CODIGO_SENCE:          datos.codigoSence || 'NO-APLICA',
-    LUGAR_EJECUCION:       datos.lugarEjecucion || brand.city,
-    FECHA_EMISION:         datos.fechaEmision || '',
-    FECHA_VENCIMIENTO:     datos.fechaFinValidez || '',
-    CODIGO_CERTIFICADO:    codigoCertificado,
+      : 'Sin vencimiento'),
+    CODIGO_SENCE:          escHtml(datos.codigoSence || 'NO-APLICA'),
+    LUGAR_EJECUCION:       escHtml(datos.lugarEjecucion || brand.city),
+    FECHA_EMISION:         escHtml(datos.fechaEmision || ''),
+    FECHA_VENCIMIENTO:     escHtml(datos.fechaFinValidez || ''),
+    CODIGO_CERTIFICADO:    escHtml(codigoCertificado),
     CONTENIDOS_CURSO:      generarHtmlContenidos(datos.contenidos),
-    TEXTO_VALIDEZ_EMPRESA: `El presente certificado es válido solo para uso de ${datos.empresaNombre}; queda inválido para ser usado por otra empresa.`,
-    QR_VERIFICACION:       `<p style="font-size:8pt;color:#555;margin-top:10px;">Código de verificación: <strong>${codigoCertificado}</strong></p>`,
+    TEXTO_VALIDEZ_EMPRESA: `El presente certificado es válido solo para uso de ${escHtml(datos.empresaNombre)}; queda inválido para ser usado por otra empresa.`,
+    QR_VERIFICACION:       `<p style="font-size:8pt;color:#555;margin-top:10px;">Código de verificación: <strong>${escHtml(codigoCertificado)}</strong></p>`,
   })
 
   /* ── 1. CSS en <head> — crítico para que html2canvas compute
@@ -462,9 +471,9 @@ function generarHtmlContenidos(contenidos) {
   // font-size:11pt explícito en cada elemento para evitar que herede
   // el tamaño de un posible ancestro h1/h2 en el template del usuario.
   return modulos.map(m => `
-    <p style="font-size:11pt;font-weight:bold;margin:12px 0 4px;">${m.titulo}</p>
+    <p style="font-size:11pt;font-weight:bold;margin:12px 0 4px;">${escHtml(m.titulo)}</p>
     <ul style="font-size:11pt;margin:0 0 8px;padding-left:20px;">
-      ${m.items.map(item => `<li style="margin-bottom:2px;">${item}</li>`).join('')}
+      ${m.items.map(item => `<li style="margin-bottom:2px;">${escHtml(item)}</li>`).join('')}
     </ul>
   `).join('')
 }

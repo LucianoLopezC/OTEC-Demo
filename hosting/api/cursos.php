@@ -15,6 +15,7 @@ try {
             json_response(array_map('row_curso', $stmt->fetchAll()));
 
         case 'POST':
+            require_permission($pdo, $user, 'crearCurso');
             if (empty($body['nombre'])) json_error('El nombre es requerido');
             $stmt = $pdo->prepare('INSERT INTO cursos (nombre,codigo_sence,horas,condicion,modalidad,categorias,objetivos,contenidos,estado,plantilla_id,vigencia_meses,precio,total_emisiones,porcentaje_asistencia,porcentaje_aprobacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
             $stmt->execute([
@@ -41,6 +42,7 @@ try {
             json_response(row_curso($row), 201);
 
         case 'PUT':
+            require_permission($pdo, $user, 'crearCurso');
             if (!$id) json_error('ID requerido');
             $stmt = $pdo->prepare('UPDATE cursos SET nombre=?,codigo_sence=?,horas=?,condicion=?,modalidad=?,categorias=?,objetivos=?,contenidos=?,estado=?,plantilla_id=?,vigencia_meses=?,precio=?,total_emisiones=?,porcentaje_asistencia=?,porcentaje_aprobacion=?,actualizado_en=NOW() WHERE id=?');
             $stmt->execute([
@@ -67,6 +69,7 @@ try {
             json_response(row_curso($row));
 
         case 'DELETE':
+            require_permission($pdo, $user, 'crearCurso');
             if (!$id) json_error('ID requerido');
             $pdo->prepare('DELETE FROM cursos WHERE id=?')->execute([$id]);
             json_response(['ok' => true]);

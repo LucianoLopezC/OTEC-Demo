@@ -15,6 +15,7 @@ try {
             json_response(array_map('row_plantilla', $stmt->fetchAll()));
 
         case 'POST':
+            require_permission($pdo, $user, 'verPlantillas');
             if (empty($body['nombre'])) json_error('El nombre es requerido');
             $stmt = $pdo->prepare('INSERT INTO plantillas (nombre,descripcion,tipo,categoria,storage_path,nombre_archivo) VALUES (?,?,?,?,?,?)');
             $stmt->execute([
@@ -32,6 +33,7 @@ try {
             json_response(row_plantilla($row), 201);
 
         case 'PUT':
+            require_permission($pdo, $user, 'verPlantillas');
             if (!$id) json_error('ID requerido');
             $stmt = $pdo->prepare('UPDATE plantillas SET nombre=?,descripcion=?,tipo=?,categoria=?,storage_path=?,nombre_archivo=?,actualizado_en=NOW() WHERE id=?');
             $stmt->execute([
@@ -49,6 +51,7 @@ try {
             json_response(row_plantilla($row));
 
         case 'DELETE':
+            require_permission($pdo, $user, 'verPlantillas');
             if (!$id) json_error('ID requerido');
             $pdo->prepare('DELETE FROM plantillas WHERE id=?')->execute([$id]);
             json_response(['ok' => true]);

@@ -3,6 +3,7 @@ require_once __DIR__ . '/helpers.php';
 cors_headers();
 $user = auth_required();
 $pdo  = get_pdo();
+require_permission($pdo, $user, 'verCotizador');
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;

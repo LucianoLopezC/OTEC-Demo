@@ -10,7 +10,7 @@ require_once __DIR__ . '/helpers.php';
 // ─── Verificar token de seguridad ─────────────────────────────────────────────
 $token = $_GET['token'] ?? '';
 $placeholders = ['cambia-esta-reset-key-por-una-propia'];
-if (!defined('RESET_TOKEN') || in_array(RESET_TOKEN, $placeholders, true)) {
+if (!defined('RESET_TOKEN') || RESET_TOKEN === '' || in_array(RESET_TOKEN, $placeholders, true)) {
     json_error('RESET_TOKEN no ha sido configurado. Ver config.php', 500);
 }
 if (!hash_equals(RESET_TOKEN, $token)) {

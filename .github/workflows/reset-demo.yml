@@ -3,7 +3,8 @@ name: Reset datos de demo
 # Llama diariamente al endpoint que restablece empresas, personas, cursos y
 # certificados a los datos de ejemplo originales — así cualquier cambio que
 # haga un visitante de la demo se borra solo cada día.
-# Requiere los secrets DEMO_APP_URL y DEMO_RESET_TOKEN (ver deploy.yml).
+# Requiere DEMO_RESET_TOKEN (secret) y DEMO_APP_URL (secret o variable de repo,
+# ej. https://tu-sitio.infinityfreeapp.com — sin "/" final). Ver deploy.yml.
 
 on:
   schedule:
@@ -15,5 +16,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Llamar a /api/reset_demo.php
+        env:
+          APP_URL: ${{ secrets.DEMO_APP_URL || vars.DEMO_APP_URL }}
+          RESET_TOKEN: ${{ secrets.DEMO_RESET_TOKEN }}
         run: |
-          curl -fsS "${{ secrets.DEMO_APP_URL }}/api/reset_demo.php?token=${{ secrets.DEMO_RESET_TOKEN }}"
+          if [ -z "$APP_URL" ]; then
+            echo "::error::Falta DEMO_APP_URL. Agrégalo en Settings → Secrets and variables → Actions (ej. https://tu-sitio.infinityfreeapp.com)."
+            exit 1
+          fi
+          if [ -z "$RESET_TOKEN" ]; then
+            echo "::error::Falta el secret DEMO_RESET_TOKEN (debe coincidir con el usado en deploy.yml)."
+            exit 1
+          fi
+          RESP=$(curl -fsS --retry 3 --retry-delay 10 -G "${APP_URL%/}/api/reset_demo.php" \
+            --data-urlencode "token=$RESET_TOKEN")
+          echo "$RESP"
+          # El hosting puede devolver 200 con una página HTML (p. ej. el desafío
+          # anti-bot de InfinityFree) en vez del JSON del endpoint.
+          if ! echo "$RESP" | grep -q '"ok":true'; then
+            echo "::error::La respuesta no es la esperada de reset_demo.php; el reset no se ejecutó."
+            exit 1
+          fi

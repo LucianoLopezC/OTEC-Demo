@@ -390,6 +390,9 @@ export function AppProvider({ children }) {
   const setSesion = (valor) => setSesionRaw(valor)
 
   const cerrarSesion = () => {
+    // Avisar a la API para que restablezca la demo si era el último visitante.
+    // keepalive: el request sobrevive aunque se cierre la pestaña enseguida.
+    if (getToken()) apiFetch('auth.php', { method: 'DELETE', keepalive: true }).catch(() => {})
     setSesionRaw(null)
     removeToken()
   }

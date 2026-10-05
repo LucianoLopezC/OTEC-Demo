@@ -3,6 +3,7 @@
 // auth.php — Login y verificación de token
 // POST /api/auth.php          → login con email+password → devuelve JWT
 // GET  /api/auth.php          → verificar token → devuelve datos del usuario
+// DELETE /api/auth.php        → cerrar sesión (restablece la demo si era el último visitante)
 // ════════════════════════════════════════════════════════════════════════════
 
 require_once __DIR__ . '/helpers.php';
@@ -35,6 +36,9 @@ if ($method === 'POST') {
     $ip = trim(explode(',', $ip)[0]); // Tomar solo la primera IP si hay proxy
     rate_limit_check($pdo, $ip);
 
+    // Si nadie está usando la demo, partir con los datos de ejemplo limpios
+    demo_reset_si_inactiva();
+
     $stmt = $pdo->prepare('SELECT * FROM usuarios WHERE LOWER(email) = ? LIMIT 1');
     $stmt->execute([$email]);
     $u = $stmt->fetch();
@@ -65,10 +69,25 @@ if ($method === 'POST') {
         'exp'           => time() + JWT_EXPIRE_SECONDS,
     ];
 
+    $token = jwt_create($payload);
+    demo_tocar_sesion($token);
+
     json_response([
-        'token'   => jwt_create($payload),
+        'token'   => $token,
         'usuario' => row_to_usuario_public($u),
     ]);
+}
+
+// ─── DELETE: cerrar sesión ────────────────────────────────────────────────────
+if ($method === 'DELETE') {
+    $header = $_SERVER['HTTP_AUTHORIZATION']
+           ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+           ?? getallheaders()['Authorization']
+           ?? '';
+    // Un token vencido o ausente no es un error al cerrar sesión
+    if (str_starts_with($header, 'Bearer ')) demo_cerrar_sesion(substr($header, 7));
+    http_response_code(204);
+    exit;
 }
 
 json_error('Método no permitido', 405);

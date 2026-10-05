@@ -6,6 +6,7 @@
 date_default_timezone_set('America/Santiago');
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/demo_reset_lib.php';
 
 // ─── Conexión PDO ─────────────────────────────────────────────────────────────
 function get_pdo(): PDO {
@@ -154,8 +155,10 @@ function auth_required(): array {
     if (!str_starts_with($header, 'Bearer ')) {
         json_error('No autenticado', 401);
     }
-    $token = substr($header, 7);
-    return jwt_verify($token);
+    $token  = substr($header, 7);
+    $claims = jwt_verify($token);
+    demo_tocar_sesion($token);
+    return $claims;
 }
 
 // ─── Headers CORS ─────────────────────────────────────────────────────────────
